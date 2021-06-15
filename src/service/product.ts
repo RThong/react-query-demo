@@ -26,9 +26,20 @@ let productList = [
   },
 ];
 
-const getAsync = (fn, timeout = 1000) => {
-  return new Promise((resolve, reject) => {
+export interface ProductItem {
+  id: number;
+  name: string;
+  price: number;
+}
+
+const getAsync = <T>(
+  fn: (resolve: (value: T | PromiseLike<T>) => void) => void,
+  timeout = 1000,
+) => {
+  return new Promise<T>((resolve, reject) => {
     setTimeout(() => {
+      console.log('【获取数据成功】');
+
       fn(resolve);
     }, timeout);
   });
@@ -37,16 +48,18 @@ const getAsync = (fn, timeout = 1000) => {
 export const getProduct = () => {
   console.log('【getProduct】', productList);
 
-  return getAsync((resolve) => resolve(productList));
+  return getAsync<ProductItem[]>((resolve) => resolve(productList));
 };
 
-export const getProductById = (id) =>
-  getAsync((resolve) => resolve(productList.find((_) => _.id === id)));
+export const getProductById = (id: number) =>
+  getAsync<ProductItem | undefined>((resolve) =>
+    resolve(productList.find((_) => _.id === id)),
+  );
 
-export const deleteProductById = (id) => {
+export const deleteProductById = (id: number) => {
   console.log('【deleteProductById】', id);
 
-  return getAsync((resolve) => {
+  return getAsync<ProductItem[]>((resolve) => {
     productList = productList.filter((item) => item.id !== id);
 
     resolve(productList);
@@ -61,7 +74,7 @@ export const addProduct = ({
   price: number;
 }) => {
   console.log('【addProduct】');
-  return getAsync((resolve) => {
+  return getAsync<ProductItem[]>((resolve) => {
     const maxId = Math.max(...productList.map((_) => _.id));
     productList = [
       ...productList,
@@ -75,14 +88,10 @@ export const addProduct = ({
   });
 };
 
-export const updateProductById = (item: {
-  id: number;
-  name: string;
-  price: number;
-}) => {
+export const updateProductById = (item: ProductItem) => {
   console.log('【updateProductById】');
 
-  return getAsync((resolve) => {
+  return getAsync<ProductItem[]>((resolve) => {
     const index = productList.findIndex((_) => _.id === item.id);
 
     productList[index] = item;
